@@ -30,7 +30,7 @@ def fetch_stock_data(symbol):
         volumes = [entry["volume"] for entry in data]
         average_volume = sum(volumes) / len(volumes) if volumes else 1
 
-        whale_detected = latest_volume > average_volume * 2
+        whale_detected = latest_volume > average_volume * 1
 
         return {
             "symbol": symbol,
