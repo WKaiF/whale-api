@@ -7,10 +7,9 @@ app = FastAPI()
 
 API_KEY = os.getenv("FMP_API_KEY")  # Your Financial Modeling Prep API key
 
-# List of 100 symbols
+# List of 10 symbols for demo; expand to 100 as needed
 STOCKS = [
-    "AAPL","MSFT","GOOGL","AMZN","TSLA","NVDA","META","BRK.B","JNJ","V",
-    # ... add remaining symbols up to 100
+    "AAPL","MSFT","GOOGL","AMZN","TSLA","NVDA","META","BRK.B","JNJ","V"
 ]
 
 history_data = {}
@@ -30,7 +29,8 @@ def fetch_stock_data(symbol):
         volumes = [entry["volume"] for entry in data]
         average_volume = sum(volumes) / len(volumes) if volumes else 1
 
-        whale_detected = latest_volume > average_volume * 1
+        # DEBUG: add multiplier for testing whales
+        whale_detected = latest_volume > average_volume * 0.8  # now some stocks will trigger
 
         return {
             "symbol": symbol,
@@ -51,6 +51,9 @@ def update_history():
         if not data:
             continue
 
+        # DEBUG PRINT
+        print(f"Fetched {symbol}: latest={data['latest_volume']}, avg={data['average_volume']}, whale={data['whale_detected']}")
+
         if symbol not in history_data:
             history_data[symbol] = []
 
@@ -70,7 +73,6 @@ def update_history():
 @app.get("/")
 def root():
     return {"message": "Whale API is live. Use /history to get last 48 hours."}
-    
 
 @app.get("/history")
 def get_history():
@@ -80,8 +82,11 @@ def get_history():
 @app.get("/whales_only")
 def whales_only():
     update_history()
-    return {
+    whales = {
         symbol: records
         for symbol, records in history_data.items()
         if records[-1]["whale_detected"]
     }
+    # DEBUG PRINT
+    print("Whales detected:", whales)
+    return whales
